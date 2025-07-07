@@ -1,8 +1,15 @@
 groups:
-  NORTHBOUND:
-    - 17448
-    - 11522
-  SOUTHBOUND:
+  Towards City & Freo:
     - 11491
     - 26168
     - 17461
+  Towards Innaloo & Glendalough:
+    - 17448
+    - 11522
+
+stop_descriptions:
+  "11491": "Selby St - Outside Gym"
+  "26168": "Selby St - 85 Stop"
+  "17461": "Grantham St - 83 Stop"
+  "17448": "Selby St - Outside Shi Wei"
+  "11522": "Flynn St - At Kenwood Court Entrance"

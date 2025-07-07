@@ -73,7 +73,10 @@ def home():
             timetable = get_timetable(stop)
             if timetable.get('result') == 'success':
                 trips = timetable.get('trips', [])
-                stop_name = trips[0]['StopTimetableStop']['Name'] if trips else 'Unknown Stop'
+                stop_name = config.get('stop_descriptions', {}).get(str(stop)) or (
+                    trips[0]['StopTimetableStop']['Name'] if trips else 'No Departures At This Time'
+                )
+
 
                 for trip in trips:
                     try:

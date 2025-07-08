@@ -115,6 +115,20 @@ http://your-nas-ip:4000
 
 ---
 
+##  Heroku Integration
+
+The git repo has a heroku remote defined locally.
+Log into heroku: heroku login
+Create the app on heroku (only done once): heroku create whenthebus
+Create the remote for the local git repo (only done once): git remote add heroku https://git.heroku.com/whenthebus.git
+Push latest changes to heroku: git push heroku main
+
+OR
+
+Link the main branch in gihub via the Deploy option in heroku. This is set up to autodeploy on change of 'main'.
+
+---
+
 ## 📋 License
 
 MIT License. Not affiliated with Transperth.

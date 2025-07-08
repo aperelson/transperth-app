@@ -85,9 +85,9 @@
 
                       <span class="{{ trip['css_class'] }}">
                         {% if is_real_time %}
-                          Arr: {{ arrival }}{% if not is_same %} | Dep: {{ departure }}{% endif %} ({{ trip['countdown'] }})
+                          {{ arrival }} ({{ trip['countdown'] }})
                         {% else %}
-                          Exp: {{ arrival }}
+                          {{ arrival }}
                         {% endif %}
                       </span>
                     </li>

@@ -2,24 +2,24 @@
 
 A lightweight Flask-based web app to display **real-time Transperth bus departures** for your favourite stops, designed to run on:
 
-- 🖥️ Mac (local Docker Desktop)
-- 📦 Synology NAS (via Container Manager)
-- 🍓 Raspberry Pi (optional)
+- Mac (local Docker Desktop)
+- Synology NAS (via Container Manager)
+- fly.io (optional)
 
 ---
 
-## 🌟 Features
+## Features
 
 - Real-time bus arrival and departure times with countdown in minutes and seconds
 - Auto-refresh every 10 seconds for live updates
-- Collapsible **NORTHBOUND** and **SOUTHBOUND** stop groups
+- Customisable stop groups
 - Mobile-friendly responsive design
 - Optional dark mode support
 - Designed for easy home network use (no external hosting required)
 
 ---
 
-## 🚀 Quick Start (Local)
+## Quick Start (Local)
 
 1. Clone this repo:
 ```bash
@@ -35,6 +35,8 @@ docker build -t transperth:latest .
 3. Run the app:
 ```bash
 docker run -it --rm -p 4000:5000 transperth:latest
+OR
+docker run -d -p 4000:5000 --name transperth transperth:latest
 ```
 
 4. Open in browser:
@@ -42,21 +44,7 @@ docker run -it --rm -p 4000:5000 transperth:latest
 http://localhost:4000
 ```
 
-
-### Build it:
-docker build -t transperth:latest .
-
-### Interactive:
-docker run -it --rm -p 4000:5000 transperth:latest
-
-### Background:
-docker run -d -p 4000:5000 --name transperth transperth:latest
-
-docker save -o transperth.tar transperth:latest
-
----
-
-## 📦 Deploy to Synology NAS
+## Deploy to Synology NAS
 
 1. Build and save the image:
 ```bash
@@ -64,56 +52,42 @@ docker save -o transperth.tar transperth:latest
 ```
 
 ### Load docker image on nas:
+
 Copy transperth.tar to /docker volume.
-ssh with Administrator priveleges
-ssh -p 37676 perthelsons@synologynas.local
+ssh with an account that has Administrator privileges
+ssh -p 37676 <user-name>@synologynas.local
 cd /volume1/docker
 sudo -i
 root@synologynas:/volume1/docker# docker load -i transperth.tar
 
-
-2. Transfer the `.tar` file to your NAS (via File Station or `scp`).
-
-3. SSH into the NAS and load the image:
-```bash
-sudo -i
-cd /volume1/docker
-docker load -i transperth.tar
-```
-
-4. In **Container Manager**:
+In **Container Manager** on the nas:
    - Create new container from `transperth:latest`
    - Map ports: `4000` (local) → `5000` (container)
 
-5. Access at:
+Access at:
 ```
 http://your-nas-ip:4000
 ```
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-- Stop numbers and groups are defined in `config.yaml`.
+- Stop numbers and groups are defined and baked in `config.yaml`.
 - To avoid rebuilding for config changes:
-  - Mount the config as a volume on the NAS.
+  - Will need to mount the config as a volume on the NAS or Somewhere.
 
 ---
 
-## 📱 Mobile & Dark Mode
+## Mobile & Dark Mode
 
-- Designed to work beautifully on phones and tablets.
+- Designed to work on phones and tablets.
 - Adapts to system dark mode automatically.
 
 ---
 
-## 💡 Future Enhancements
 
-- API token management
-- Train or ferry support
-- Push notifications (optional)
-
----
+# Hosted versions:
 
 ##  Heroku Integration
 
@@ -129,10 +103,29 @@ Link the main branch in gihub via the Deploy option in heroku. This is set up to
 
 ---
 
-## 📋 License
+## Fly.io Integration
+
+Run fly.io integration
+```
+brew install flyctl
+
+flyctl auth login
+
+flyctl launch
+```
+
+To update later:
+```
+flyctl deploy
+```
+
+
+---
+
+# License
 
 MIT License. Not affiliated with Transperth.
 
 ---
-
+ 
 > "When's The Bus?"—because life’s too short to miss the ride. 🚌

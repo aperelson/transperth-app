@@ -87,19 +87,7 @@ http://your-nas-ip:4000
 ---
 
 
-# Hosted versions:
-
-##  Heroku Integration
-
-The git repo has a heroku remote defined locally.
-Log into heroku: heroku login
-Create the app on heroku (only done once): heroku create whenthebus
-Create the remote for the local git repo (only done once): git remote add heroku https://git.heroku.com/whenthebus.git
-Push latest changes to heroku: git push heroku main
-
-OR
-
-Link the main branch in gihub via the Deploy option in heroku. This is set up to autodeploy on change of 'main'.
+# Hosted version:
 
 ---
 
@@ -116,6 +104,10 @@ flyctl launch
 
 To update later:
 ```
+There's a github action in place that auto deploys on update to the main branch.
+
+OR 
+
 flyctl deploy
 ```
 

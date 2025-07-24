@@ -29,16 +29,16 @@
     }
 
     .card-header {
-        color: #fff !important;        /* Force white text */
-        background-color: #444 !important;  /* Optional: Dark gray background */
-        font-weight: bold;
+      color: #fff !important;
+      background-color: #444 !important;
+      font-weight: bold;
     }
 
     @media (prefers-color-scheme: light) {
-        .card-header {
-        color: #000 !important;       /* Restore dark text in light mode */
+      .card-header {
+        color: #000 !important;
         background-color: #f8f9fa !important;
-        }
+      }
     }
   </style>
 </head>
@@ -46,23 +46,25 @@
 
   <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0 d-flex align-items-center">
-            <i class="bi bi-bus-front-fill me-2"></i>
-            &nbsp;When's The Bus?
-        </h1>
-
-        <h1 class="mb-0 fs-3">
-            {{ now.strftime('%H:%M:%S') }}
-        </h1>
+      <h1 class="mb-0 d-flex align-items-center">
+        <i class="bi bi-bus-front-fill me-2"></i>&nbsp;When's The Bus?
+      </h1>
+      <h1 class="mb-0 fs-3">{{ now.strftime('%H:%M:%S') }}</h1>
     </div>
 
     {% for group_name, stops in data.items() %}
+      {% set group_id = 'group-' + group_name|replace(' ', '-') %}
       <div class="mb-3">
-        <button class="group-header w-100 text-start py-2 fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#group-{{ loop.index }}" aria-expanded="false" aria-controls="group-{{ loop.index }}">
+        <button class="group-header w-100 text-start py-2 fs-5"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#{{ group_id }}"
+                aria-expanded="false"
+                aria-controls="{{ group_id }}">
           {{ group_name }}
         </button>
 
-        <div class="collapse show mt-2" id="group-{{ loop.index }}">
+        <div class="collapse mt-2" id="{{ group_id }}">
           {% for stop, stop_data in stops.items() %}
             <div class="card mb-3">
               <div class="card-header">
@@ -78,16 +80,13 @@
                       </div>
 
                       {% set rti = trip.get('RealTimeInfo') %}
-                      {% set arrival = rti['EstimatedArrivalTime'] if rti and rti['EstimatedArrivalTime'] else trip['ArriveTime'].split('T')[1] %}
-                      {% set departure = rti['EstimatedDepartureTime'] if rti and rti['EstimatedDepartureTime'] else trip['DepartTime'].split('T')[1] %}
-                      {% set is_real_time = rti and rti['EstimatedArrivalTime'] %}
-                      {% set is_same = arrival == departure %}
+                      {% set arrival = rti['EstimatedArrivalTime'] if rti and rti.get('EstimatedArrivalTime') else trip.get('ArriveTime', '').split('T')[1] if trip.get('ArriveTime') else 'N/A' %}
+                      {% set is_real_time = rti and rti.get('EstimatedArrivalTime') %}
 
                       <span class="{{ trip['css_class'] }}">
+                        {{ arrival }}
                         {% if is_real_time %}
-                          {{ arrival }} ({{ trip['countdown'] }})
-                        {% else %}
-                          {{ arrival }}
+                          <small class="text-muted ms-2">({{ trip['countdown'] }})</small>
                         {% endif %}
                       </span>
                     </li>
@@ -101,8 +100,44 @@
         </div>
       </div>
     {% endfor %}
-
   </div>
+
+  <script>
+    // Restore scroll position on load
+    document.addEventListener("DOMContentLoaded", () => {
+      const scrollY = sessionStorage.getItem("scroll-position");
+      if (scrollY !== null) {
+        window.scrollTo(0, parseInt(scrollY));
+      }
+
+      // Collapse state handling
+      const collapses = document.querySelectorAll('.collapse');
+      collapses.forEach(el => {
+        const id = el.id;
+        const expanded = localStorage.getItem('collapse-' + id) === 'true';
+
+        if (expanded) {
+          const bsCollapse = new bootstrap.Collapse(el, { toggle: false });
+          bsCollapse.show();
+        } else {
+          el.classList.remove('show');
+        }
+
+        el.addEventListener('shown.bs.collapse', () => {
+          localStorage.setItem('collapse-' + id, 'true');
+        });
+
+        el.addEventListener('hidden.bs.collapse', () => {
+          localStorage.setItem('collapse-' + id, 'false');
+        });
+      });
+    });
+
+    // Save scroll position before refresh
+    window.addEventListener("beforeunload", () => {
+      sessionStorage.setItem("scroll-position", window.scrollY);
+    });
+  </script>
 
 </body>
 </html>

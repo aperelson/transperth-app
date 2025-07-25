@@ -40,6 +40,10 @@
         background-color: #f8f9fa !important;
       }
     }
+
+    .arrival-time {
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 <body class="p-3">
@@ -76,7 +80,9 @@
                   {% for trip in stop_data.trips %}
                     <li class="list-group-item d-flex justify-content-between align-items-center py-2">
                       <div class="text-truncate me-2">
-                        <strong>{{ trip['DisplayRouteCode'] }}</strong> → {{ trip['DisplayTripTitle'] }}
+                        <strong>{{ trip['DisplayRouteCode'] }}</strong>
+                        &rarr;
+                        <span class="fw-normal">{{ trip['DisplayTripTitle'] }}</span>
                       </div>
 
                       {% set rti = trip.get('RealTimeInfo') %}
@@ -84,7 +90,7 @@
                       {% set is_real_time = rti and rti.get('EstimatedArrivalTime') %}
 
                       <div class="text-nowrap">
-                        {{ arrival }}
+                        <span class="arrival-time fw-normal">{{ arrival }}</span>
                         {% if is_real_time %}
                           <small class="ms-2 {{ trip['css_class'] }}">({{ trip['countdown'] }})</small>
                         {% endif %}

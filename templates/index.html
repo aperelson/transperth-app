@@ -74,8 +74,8 @@
               <ul class="list-group list-group-flush">
                 {% if stop_data.trips %}
                   {% for trip in stop_data.trips %}
-                    <li class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2">
-                      <div>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                      <div class="text-truncate me-2">
                         <strong>{{ trip['DisplayRouteCode'] }}</strong> → {{ trip['DisplayTripTitle'] }}
                       </div>
 
@@ -83,12 +83,12 @@
                       {% set arrival = rti['EstimatedArrivalTime'] if rti and rti.get('EstimatedArrivalTime') else trip.get('ArriveTime', '').split('T')[1] if trip.get('ArriveTime') else 'N/A' %}
                       {% set is_real_time = rti and rti.get('EstimatedArrivalTime') %}
 
-                      <span class="{{ trip['css_class'] }}">
+                      <div class="text-nowrap">
                         {{ arrival }}
                         {% if is_real_time %}
-                          <small class="text-muted ms-2">({{ trip['countdown'] }})</small>
+                          <small class="ms-2 {{ trip['css_class'] }}">({{ trip['countdown'] }})</small>
                         {% endif %}
-                      </span>
+                      </div>
                     </li>
                   {% endfor %}
                 {% else %}

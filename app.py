@@ -38,7 +38,6 @@ HEADERS = {
 
 API_URL = 'https://www.transperth.wa.gov.au/API/SilverRailRestService/SilverRailService/GetStopTimetable'
 
-
 # Helper function to call the API for a given stop
 def get_timetable(stop_number):
     now = datetime.now()
@@ -57,9 +56,13 @@ def get_timetable(stop_number):
         response = requests.post(API_URL, headers=HEADERS, data=payload_encoded, timeout=10)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         print(f"Error fetching timetable for stop {stop_number}: {e}")
+        if e.response is not None:
+            print(f"Response status: {e.response.status_code}")
+            print(f"Response body: {e.response.text[:1000]}")  
         return {}
+
 
 @app.route('/')
 def home():

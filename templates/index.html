@@ -65,11 +65,25 @@
               ul.innerHTML = '<li class="list-group-item text-muted">No upcoming departures</li>';
               return;
             }
+
             trips.slice(0,3).forEach(trip => {
+              const countdown = trip.Countdown || "";
+              const arrive = trip.ArriveTime || "N/A";
+
+              // Check if countdown contains a number under 5
+              let countdownClass = "";
+              const m = countdown.match(/in\s+(\d+)\s+min/);
+              if (m && parseInt(m[1]) <= 5) {
+                countdownClass = "text-danger fw-semibold"; // red + bold
+              }
+
               ul.innerHTML += `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
+                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
                   <div><strong>${trip.DisplayRouteCode}</strong> → ${trip.DisplayTripTitle}</div>
-                  <div>${trip.EstimatedArrivalTime || trip.ArriveTime || 'N/A'}</div>
+                  <div class="text-nowrap">
+                    ${arrive}
+                    ${countdown ? `<small class="${countdownClass} ms-1">(${countdown})</small>` : ""}
+                  </div>
                 </li>`;
             });
           });
@@ -84,7 +98,7 @@
 
       navigator.geolocation.getCurrentPosition(
         pos => {
-          document.getElementById('status').innerText = "Fetching nearby stops...";
+          document.getElementById('status').innerText = "These are the nearby stops...";
           loadNearbyStops(pos.coords.latitude, pos.coords.longitude);
         },
         err => {

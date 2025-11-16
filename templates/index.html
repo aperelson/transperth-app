@@ -3,146 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>When The Bus?</title>
+  <title>When's The Bus?</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
   <style>
-    .group-header {
-      background-color: #006639; /* Transperth green */
-      color: white;
-      font-weight: bold;
-      padding: 10px 15px;
-      border-radius: 5px;
-    }
-
+    body { padding: 1.5rem; }
+    .card { margin-bottom: 1rem; }
+    .stop-name a { color: #006639; text-decoration: none; font-weight: 600; }
+    .stop-name a:hover { text-decoration: underline; }
     @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #121212;
-        color: #fff;
-      }
-      .card {
-        background-color: #1e1e1e;
-      }
-    }
-
-    .card-header {
-      color: #fff !important;
-      background-color: #444 !important;
-      font-weight: bold;
-    }
-
-    @media (prefers-color-scheme: light) {
-      .card-header {
-        color: #000 !important;
-        background-color: #f8f9fa !important;
-      }
-    }
-
-    .arrival-time {
-      font-size: 0.95rem;
+      body { background-color: #121212; color: #fff; }
+      .card { background-color: #1e1e1e; }
     }
   </style>
 </head>
-<body class="p-3">
-
+<body>
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="mb-0 d-flex align-items-center">
-        <i class="bi bi-bus-front-fill me-2"></i>&nbsp;When's The Bus?
-      </h1>
-      <h1 class="mb-0 fs-3">{{ now.strftime('%H:%M:%S') }}</h1>
-    </div>
-
-    {% for group_name, stops in data.items() %}
-      {% set group_id = 'group-' + group_name|replace(' ', '-') %}
-      <div class="mb-3">
-        <button class="group-header w-100 text-start py-2 fs-5"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#{{ group_id }}"
-                aria-expanded="false"
-                aria-controls="{{ group_id }}">
-          {{ group_name }}
-        </button>
-
-        <div class="collapse mt-2" id="{{ group_id }}">
-          {% for stop, stop_data in stops.items() %}
-            <div class="card mb-3">
-              <div class="card-header">
-                <strong>Stop {{ stop }}: {{ stop_data.stop_name }}</strong>
-              </div>
-
-              <ul class="list-group list-group-flush">
-                {% if stop_data.trips %}
-                  {% for trip in stop_data.trips %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                      <div class="text-truncate me-2">
-                        <strong>{{ trip['DisplayRouteCode'] }}</strong>
-                        &rarr;
-                        <span class="fw-normal">{{ trip['DisplayTripTitle'] }}</span>
-                      </div>
-
-                      {% set rti = trip.get('RealTimeInfo') %}
-                      {% set arrival = rti['EstimatedArrivalTime'] if rti and rti.get('EstimatedArrivalTime') else trip.get('ArriveTime', '').split('T')[1] if trip.get('ArriveTime') else 'N/A' %}
-                      {% set is_real_time = rti and rti.get('EstimatedArrivalTime') %}
-
-                      <div class="text-nowrap">
-                        <span class="arrival-time fw-normal">{{ arrival }}</span>
-                        {% if is_real_time %}
-                          <small class="ms-2 {{ trip['css_class'] }}">({{ trip['countdown'] }})</small>
-                        {% endif %}
-                      </div>
-                    </li>
-                  {% endfor %}
-                {% else %}
-                  <li class="list-group-item text-muted">No upcoming departures</li>
-                {% endif %}
-              </ul>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    {% endfor %}
+    <h1 class="mb-4"><i class="bi bi-bus-front-fill me-2"></i>When's The Bus?</h1>
+    <div id="status" class="text-muted mb-3">Getting your location...</div>
+    <div id="stops"></div>
   </div>
 
   <script>
-    // Restore scroll position on load
-    document.addEventListener("DOMContentLoaded", () => {
-      const scrollY = sessionStorage.getItem("scroll-position");
-      if (scrollY !== null) {
-        window.scrollTo(0, parseInt(scrollY));
+    async function loadNearbyStops(lat, lon) {
+      const res = await fetch(`/nearby?lat=${lat}&lon=${lon}`);
+      const data = await res.json();
+
+      const container = document.getElementById('stops');
+      container.innerHTML = '';
+
+      if (!data.nearbyStops || data.nearbyStops.length === 0) {
+        container.innerHTML = '<p class="text-muted">No nearby stops found.</p>';
+        return;
       }
 
-      // Collapse state handling
-      const collapses = document.querySelectorAll('.collapse');
-      collapses.forEach(el => {
-        const id = el.id;
-        const expanded = localStorage.getItem('collapse-' + id) === 'true';
+      data.nearbyStops.forEach(stop => {
+        const card = document.createElement('div');
+        card.className = 'card shadow-sm';
+        card.innerHTML = `
+          <div class="card-body">
+            <h5 class="stop-name">
+              <a href="https://maps.google.com/?q=${stop.Latitude},${stop.Longitude}" target="_blank">
+                ${stop.StopName}
+              </a>
+            </h5>
+            <p class="mb-1">Stop ${stop.StopNumber} — ${stop.Distance} m away</p>
+            <ul class="list-group list-group-flush" id="trips-${stop.StopNumber}">
+              <li class="list-group-item text-muted">Loading bus times...</li>
+            </ul>
+          </div>
+        `;
+        container.appendChild(card);
 
-        if (expanded) {
-          const bsCollapse = new bootstrap.Collapse(el, { toggle: false });
-          bsCollapse.show();
-        } else {
-          el.classList.remove('show');
-        }
-
-        el.addEventListener('shown.bs.collapse', () => {
-          localStorage.setItem('collapse-' + id, 'true');
-        });
-
-        el.addEventListener('hidden.bs.collapse', () => {
-          localStorage.setItem('collapse-' + id, 'false');
-        });
+        // Load next buses for this stop
+        fetch(`/nextbuses?stop=${stop.StopNumber}`)
+          .then(r => r.json())
+          .then(trips => {
+            const ul = document.getElementById(`trips-${stop.StopNumber}`);
+            ul.innerHTML = '';
+            if (!trips || trips.length === 0) {
+              ul.innerHTML = '<li class="list-group-item text-muted">No upcoming departures</li>';
+              return;
+            }
+            trips.slice(0,3).forEach(trip => {
+              ul.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div><strong>${trip.DisplayRouteCode}</strong> → ${trip.DisplayTripTitle}</div>
+                  <div>${trip.EstimatedArrivalTime || trip.ArriveTime || 'N/A'}</div>
+                </li>`;
+            });
+          });
       });
-    });
+    }
 
-    // Save scroll position before refresh
-    window.addEventListener("beforeunload", () => {
-      sessionStorage.setItem("scroll-position", window.scrollY);
-    });
+    function init() {
+      if (!navigator.geolocation) {
+        document.getElementById('status').innerText = "Geolocation not supported.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          document.getElementById('status').innerText = "Fetching nearby stops...";
+          loadNearbyStops(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+          document.getElementById('status').innerText = "Unable to get location.";
+        }
+      );
+    }
+
+    init();
   </script>
-
 </body>
 </html>

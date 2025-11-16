@@ -1,8 +1,10 @@
 from flask import Flask, render_template, jsonify, request
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import re
+import os
+import pytz   
 
 app = Flask(__name__)
 
@@ -87,24 +89,32 @@ def nextbuses():
             time_str = time_val.replace("*", "").strip()
 
             # Compute countdown in minutes
-            countdown = None
+            countdown = ""
             try:
-                now = datetime.now()
-                trip_time = datetime.strptime(time_str, "%H:%M")
-                trip_time = now.replace(hour=trip_time.hour, minute=trip_time.minute, second=0, microsecond=0)
+                perth_tz = pytz.timezone("Australia/Perth")
 
-                # Handle if time has already passed (assume next day)
+                now_utc = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+                now = now_utc.astimezone(perth_tz)
+
+                # Parse the bus time (HH:MM) and localize to Perth
+                trip_time = datetime.strptime(time_str, "%H:%M")
+                trip_time = perth_tz.localize(datetime.combine(now.date(), trip_time.time()))
+
+                # If bus time already passed today, assume it's next day
                 if trip_time < now:
                     trip_time += timedelta(days=1)
 
-                delta_min = int((trip_time - now).total_seconds() // 60)
+                delta_min = round((trip_time - now).total_seconds() / 60)
+
                 if delta_min <= 0:
                     countdown = "departed"
                 elif delta_min == 1:
                     countdown = "in 1 min"
                 else:
                     countdown = f"in {delta_min} min"
-            except Exception:
+
+            except Exception as e:
+                print(f"[WARN] Countdown calc failed for {time_str}: {e}")
                 countdown = ""
 
             trips.append({
@@ -122,5 +132,6 @@ def nextbuses():
         return jsonify([])
     
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

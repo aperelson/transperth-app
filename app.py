@@ -48,7 +48,7 @@ def nearby():
     payload = {
         "GeoCoordinate": f"{lat},{lon}",
         "ReturnPolylineInformation": "false",
-        "MaximumDistanceInMetres": "500",
+        "MaximumDistanceInMetres": "600",
         "MaximumStopsToReturn": "12",
     }
 

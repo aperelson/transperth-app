@@ -4,23 +4,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>When's The Bus?</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
   <style>
-    body { padding: 1.5rem; }
-    .card { margin-bottom: 1rem; }
-    .stop-name a { color: #006639; text-decoration: none; font-weight: 600; }
-    .stop-name a:hover { text-decoration: underline; }
+    body {
+      padding: 1.5rem;
+    }
+
+    .card {
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .stop-name {
+      color: #1f6b3a;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .stop-link {
+      color: #0d6efd;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .stop-link:hover {
+      text-decoration: underline;
+    }
+
+    .trip-line {
+      font-size: 1rem;
+    }
+
+    .countdown-soon {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
     @media (prefers-color-scheme: dark) {
-      body { background-color: #121212; color: #fff; }
-      .card { background-color: #1e1e1e; }
+      body {
+        background-color: #121212;
+        color: #ffffff;
+      }
+
+      .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+      }
+
+      .stop-link {
+        color: #4da3ff;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="container">
-    <h1 class="mb-4"><i class="bi bi-bus-front-fill me-2"></i>When's The Bus?</h1>
-    <div id="status" class="text-muted mb-3">Getting your location...</div>
+    <h1 class="mb-4">When's The Bus?</h1>
+    <div id="status" class="text-muted mb-3">Getting your location…</div>
     <div id="stops"></div>
   </div>
 
@@ -29,80 +73,96 @@
       const res = await fetch(`/nearby?lat=${lat}&lon=${lon}`);
       const data = await res.json();
 
-      const container = document.getElementById('stops');
-      container.innerHTML = '';
+      const container = document.getElementById("stops");
+      container.innerHTML = "";
 
       if (!data.nearbyStops || data.nearbyStops.length === 0) {
-        container.innerHTML = '<p class="text-muted">No nearby stops found.</p>';
+        container.innerHTML = "<p class='text-muted'>No nearby stops found.</p>";
         return;
       }
 
       data.nearbyStops.forEach(stop => {
-        const card = document.createElement('div');
-        card.className = 'card shadow-sm';
+        const card = document.createElement("div");
+        card.className = "card shadow-sm";
+
         card.innerHTML = `
           <div class="card-body">
-            <h5 class="stop-name">
-              <a href="https://maps.google.com/?q=${stop.Latitude},${stop.Longitude}" target="_blank">
-                ${stop.StopName}
+            <div class="stop-name">${stop.StopName}</div>
+            <div class="mb-2">
+              <a
+                class="stop-link"
+                href="https://maps.google.com/?q=${stop.Latitude},${stop.Longitude}"
+                target="_blank"
+                rel="noopener"
+              >
+                Stop ${stop.StopNumber} — ${stop.Distance} m away
               </a>
-            </h5>
-            <p class="mb-1">Stop ${stop.StopNumber} — ${stop.Distance} m away</p>
-            <ul class="list-group list-group-flush" id="trips-${stop.StopNumber}">
-              <li class="list-group-item text-muted">Loading bus times...</li>
-            </ul>
+            </div>
+
+            <ul class="list-group list-group-flush" id="trips-${stop.StopNumber}"></ul>
           </div>
         `;
+
         container.appendChild(card);
 
-        // Load next buses for this stop
-        fetch(`/nextbuses?stop=${stop.StopNumber}`)
-          .then(r => r.json())
-          .then(trips => {
-            const ul = document.getElementById(`trips-${stop.StopNumber}`);
-            ul.innerHTML = '';
-            if (!trips || trips.length === 0) {
-              ul.innerHTML = '<li class="list-group-item text-muted">No upcoming departures</li>';
-              return;
+        let loaded = false;
+
+        card.addEventListener("click", async () => {
+          if (loaded) return;
+          loaded = true;
+
+          const ul = document.getElementById(`trips-${stop.StopNumber}`);
+          ul.innerHTML = "<li class='list-group-item text-muted'>Loading…</li>";
+
+          const resp = await fetch(`/nextbuses?stop=${stop.StopNumber}`);
+          const trips = await resp.json();
+
+          ul.innerHTML = "";
+
+          if (!trips || trips.length === 0) {
+            ul.innerHTML = "<li class='list-group-item text-muted'>No upcoming departures</li>";
+            return;
+          }
+
+          trips.slice(0, 3).forEach(trip => {
+            const countdown = trip.Countdown || "";
+            const arrive = trip.ArriveTime || "N/A";
+
+            let countdownClass = "";
+            const match = countdown.match(/in\s+(\d+)\s+min/);
+            if (match && parseInt(match[1]) <= 5) {
+              countdownClass = "countdown-soon";
             }
 
-            trips.slice(0,3).forEach(trip => {
-              const countdown = trip.Countdown || "";
-              const arrive = trip.ArriveTime || "N/A";
-
-              // Check if countdown contains a number under 5
-              let countdownClass = "";
-              const m = countdown.match(/in\s+(\d+)\s+min/);
-              if (m && parseInt(m[1]) <= 5) {
-                countdownClass = "text-danger fw-semibold"; // red + bold
-              }
-
-              ul.innerHTML += `
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                  <div><strong>${trip.DisplayRouteCode}</strong> → ${trip.DisplayTripTitle}</div>
-                  <div class="text-nowrap">
-                    ${arrive}
-                    ${countdown ? `<small class="${countdownClass} ms-1">(${countdown})</small>` : ""}
-                  </div>
-                </li>`;
-            });
+            ul.innerHTML += `
+              <li class="list-group-item py-2">
+                <div class="trip-line">
+                  <strong>${trip.DisplayRouteCode}</strong> → ${trip.DisplayTripTitle}
+                </div>
+                <div class="trip-line">
+                  ${arrive}
+                  ${countdown ? `<span class="${countdownClass}">(${countdown})</span>` : ""}
+                </div>
+              </li>
+            `;
           });
+        });
       });
     }
 
     function init() {
       if (!navigator.geolocation) {
-        document.getElementById('status').innerText = "Geolocation not supported.";
+        document.getElementById("status").innerText = "Geolocation not supported.";
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
         pos => {
-          document.getElementById('status').innerText = "These are the nearby stops...";
+          document.getElementById("status").innerText = "These are the nearby stops…";
           loadNearbyStops(pos.coords.latitude, pos.coords.longitude);
         },
-        err => {
-          document.getElementById('status').innerText = "Unable to get location.";
+        () => {
+          document.getElementById("status").innerText = "Unable to get location.";
         }
       );
     }

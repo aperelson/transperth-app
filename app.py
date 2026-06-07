@@ -19,7 +19,7 @@ HEADERS = {
     'ModuleId': '5310',
     'Origin': 'https://www.transperth.wa.gov.au',
     'Referer': 'https://www.transperth.wa.gov.au/Journey-Planner/Stops-Near-You',
-    'RequestVerificationToken': 'oDKoc33Ff4f48zYdDnDY3mfxEhdIH5b5JRUYjSUv55YXhJ3pytlpXN62r2GNirgRcxbqdw2',
+    'RequestVerificationToken': 'ASkCqaFEItbfbf0p0ACZi1_0FXEB4KlOFujkk50UwowkGLrrKXm7Qy9g7hsrCwBn2z1n5A2',
     'Sec-Fetch-Dest': 'empty',
     'Sec-Fetch-Mode': 'cors',
     'Sec-Fetch-Site': 'same-origin',
@@ -29,7 +29,7 @@ HEADERS = {
     'sec-ch-ua': '"Google Chrome";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"macOS"',
-    'Cookie': 'dnn_IsMobile=False; language=en-AU; .ASPXANONYMOUS=TRcrP5IMWa-ReSKSqZ9vKWye6U_xznDh1LaBCqc7m3Bqpel6_WZH0b4VEz4MSvAARHtdS5dAyBX7Ux3XbONqRjChfPrmBUPpr0wvJo0g6t4HWRcu0; Analytics_VisitorId=bdee5299-8878-4d18-8738-ffae3a524773; ASP.NET_SessionId=cp2tvdgcdbti3ryaphkzqegf; __RequestVerificationToken=xEZmGAlGgXuE_ZHELSfsWFpbs-Do0L5i03NFp40gnH27HLkagbC5x5SwhUI6LngO1x35RQ2; _gcl_au=1.1.1819698543.1751687118; _ga=GA1.1.468980649.1751687119; _tt_enable_cookie=1; _ttp=01JZCB0G989GVFNAP0QED3DGQP_.tt.3; .DOTNETNUKE=23D9D97F85F750F82C747D5C61B056DF47F40C010BF6080973C53F392B9AD57FB1B549789A1158AB682838CE5200088B084750ECAB631AC25A4EB268A2BA12251B3ED905EC9159C39C020A8CEBC00FBF8F241290625F4C66688FED0EFEDD9E7197495AE7C0806D0565D0A010E2F057AB1D2D03D00DDB055342BAA0A7; LastPageId=0:267; TS01a3c144=0169f4a7f2c972d28caba2cf0726d4a9f21e2968fc3cbaadf24ea8fc4fd08cfb218b6116a6fea678dd4776fb7e04c38ab33bfcdd57; Analytics=SessionId=a671f38b-1f69-4e5a-a030-2e132ccf8d1a&TabId=141&ContentItemId=-1; _ga_K2FCMWJJX5=GS2.1.s1751687118$o1$g1$t1751690541$j3$l0$h0; ttcsid_CNBBHLJC77U3KI9K5FD0=1751687119145::4S74n5hAHVdc0_m24_DM.1.1751690541241; ttcsid=1751687119145::ojc2hSve6MIOxRyNxGHo.1.1751690541241; TScdcd7383027=08eb9c7649ab2000ef56bd4b034b292f824f794585f3e3259d0c4a3279202424a65a4f517ca4a17f08b2eef3ca113000d792813533c1af21ff837d43dc67a24e9452b9a15fa0542be839a224735698e39bf45617902618acfdf785b1d2d2c735'
+    'Cookie': 'dnn_IsMobile=False; language=en-AU; .ASPXANONYMOUS=8xUsfMcU6gxuncn9k4JgAjmeCG-PLfVqb9JJE4RWI2zI-bzBqLOXKJHMJk39WTNaMGM5xOEW5jciTJGOFHIbfwepiTvMH4q4cfLk8cW22tiAHVGf0; ASP.NET_SessionId=euohfm5blhus5fzwkmnorysz; __RequestVerificationToken=DUcUy1ltMWBnUHmIXWpXb1mHgBgPuXBGR0YKFSqQ2JsYXhoX1L-YBWiCljPawlL-GT0fPg2; TS01a3c144=0169f4a7f2ee180e014c1bf98f383e30d43ff588ef2df2f5142e888e3218f742df8ef7ebd1435b70bfc6ed089ef4a49d04812b9183; _gcl_au=1.1.1258687187.1780819914; _ga=GA1.1.862622410.1780819914; _tt_enable_cookie=1; _ttp=01KTGJ6VS2YY8WTTVWC4VHV2HW_.tt.3; ttcsid=1780819914531::MQhMEaHWN8Sic41XXyhG.1.1780819924537.0::1.-3120.0::0.0.0.0::0.0.0; ttcsid_CNBBHLJC77U3KI9K5FD0=1780819914531::WSLF4ZXMfj-bhRUEqENI.1.1780819924540.1; TScdcd7383027=08eb9c7649ab20008c74f4adb2b71c019332feb72b8449c4051691b9e866533d05741f0ae08536330849f05abc11300043e7f13128770bc823de6d33469f6fb19a41ba8b61c31f26616ad7ad083621a059d690cab6e169406e007dd33a5a1b15; _ga_K2FCMWJJX5=GS2.1.s1780819914$o1$g1$t1780819964$j10$l0$h0'
 }
 
 @app.route("/")
@@ -44,7 +44,7 @@ def nearby():
     if not lat or not lon:
         return jsonify({"error": "Missing lat/lon"}), 400
 
-    url = f"{TRANS_PERTH_BASE}/GetNearbyStops"
+    url = f"{TRANS_PERTH_BASE}/GetNearbyStopsAsync"
     payload = {
         "GeoCoordinate": f"{lat},{lon}",
         "ReturnPolylineInformation": "false",
@@ -64,7 +64,7 @@ def nextbuses():
 
     now = datetime.now(PERTH_TZ).replace(tzinfo=None)
 
-    url = f"{TRANS_PERTH_BASE}/GetStopTimetable"
+    url = f"{TRANS_PERTH_BASE}/GetStopTimetableAsync"
 
     payload = {
         'StopNumber': stop,
